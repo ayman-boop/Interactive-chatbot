@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗣️ AI Anything Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .description {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        #chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 15px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #DCF8C6;
+            margin-left: auto;
+            color: #000;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #E5E5EA;
+            margin-right: auto;
+            color: #000;
+        }
+        .message-container {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .user-container {
+            justify-content: flex-end;
+        }
+        .bot-container {
+            justify-content: flex-start;
+        }
+        .input-container {
+            display: flex;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        #send-button:hover {
+            background-color: #45a049;
+        }
+        .typing {
+            font-style: italic;
+            color: #888;
+            margin-left: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .settings {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗣️ AI Anything Chatbot</h1>
+    <p class="description">
+        Ask me anything! I can respond to a variety of topics and questions.<br>
+        Just type your message below and I'll respond to the best of my abilities.
+    </p>
+    <div id="chat-container"></div>
+    <div class="typing hidden" id="typing-indicator">Bot is typing...</div>
+    <div class="input-container">
+        <input type="text" id="user-input" placeholder="Type your message here..." autofocus>
+        <button id="send-button">Send</button>
+    </div>
+    <div class="settings">
+        <p>- Using simple pattern-based responses</p>
+        <p>- Conversations are logged to chat_log.txt</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const typingIndicator = document.getElementById('typing-indicator');
+            
+            // Send message when Send button is clicked
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Send message when Enter key is pressed
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+                
+                // Add user message to chat
+                addMessageToChat('user', message);
+                
+                // Clear input
+                userInput.value = '';
+                
+                // Show typing indicator
+                typingIndicator.classList.remove('hidden');
+                
+                // Send to server
+                fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide typing indicator
+                    typingIndicator.classList.add('hidden');
+                    
+                    // Add bot response to chat
+                    addMessageToChat('bot', data.response);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    typingIndicator.classList.add('hidden');
+                    addMessageToChat('bot', 'Sorry, there was an error processing your request.');
+                });
+            }
+            
+            function addMessageToChat(sender, text) {
+                const messageContainer = document.createElement('div');
+                messageContainer.className = `message-container ${sender}-container`;
+                
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${sender}-message`;
+                messageElement.textContent = text;
+                
+                messageContainer.appendChild(messageElement);
+                chatContainer.appendChild(messageContainer);
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
+        
